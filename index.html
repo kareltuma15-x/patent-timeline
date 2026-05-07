@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Patent Application Timeline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #f7f5f0;
+  --bg2: #eeeae2;
+  --ink: #1a1814;
+  --ink2: #6b6760;
+  --ink3: #a8a39c;
+  --accent: #c8432a;
+  --accent2: #e8956a;
+  --green: #2d6a4f;
+  --green-bg: #d8f3dc;
+  --red: #c8432a;
+  --red-bg: #fde8e4;
+  --amber: #b45309;
+  --amber-bg: #fef3c7;
+  --blue: #1d4ed8;
+  --blue-bg: #dbeafe;
+  --border: rgba(26,24,20,0.12);
+  --border2: rgba(26,24,20,0.06);
+  --radius: 10px;
+  --mono: 'DM Mono', monospace;
+  --serif: 'Fraunces', Georgia, serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--mono);font-size:13px;min-height:100vh}
+a{color:inherit;text-decoration:none}
+
+/* layout */
+.page{max-width:860px;margin:0 auto;padding:40px 24px 80px}
+
+/* header */
+.site-header{margin-bottom:48px}
+.site-title{font-family:var(--serif);font-size:clamp(28px,5vw,42px);font-weight:300;line-height:1.1;color:var(--ink);margin-bottom:6px}
+.site-title em{font-style:italic;color:var(--accent)}
+.site-meta{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:14px}
+.meta-chip{font-size:11px;padding:4px 10px;border-radius:99px;background:var(--bg2);color:var(--ink2);border:0.5px solid var(--border)}
+.meta-chip.pub{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;margin-right:5px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* stats bar */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:40px}
+.stat{background:var(--bg2);border-radius:var(--radius);padding:14px 16px;border:0.5px solid var(--border2)}
+.stat-label{font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.stat-value{font-family:var(--serif);font-size:24px;font-weight:600;color:var(--ink);line-height:1}
+.stat-value.danger{color:var(--red)}
+.stat-value.success{color:var(--green)}
+.stat-value.warn{color:var(--amber)}
+.stat-sub{font-size:10px;color:var(--ink3);margin-top:4px}
+
+/* progress */
+.progress-wrap{margin-bottom:40px}
+.progress-label{display:flex;justify-content:space-between;font-size:11px;color:var(--ink2);margin-bottom:8px}
+.progress-track{height:3px;background:var(--bg2);border-radius:99px;overflow:hidden}
+.progress-fill{height:100%;background:var(--green);border-radius:99px;transition:width .6s cubic-bezier(.4,0,.2,1)}
+
+/* alert */
+.alert{background:var(--red-bg);border:0.5px solid rgba(200,67,42,.3);border-radius:var(--radius);padding:12px 16px;margin-bottom:24px;font-size:12px;color:var(--red);display:none;line-height:1.5}
+.alert.show{display:block}
+
+/* timeline */
+.timeline{position:relative}
+.tl-item{display:grid;grid-template-columns:100px 1px 1fr;gap:0 0;margin-bottom:0}
+.tl-date-col{padding-right:20px;padding-top:16px;text-align:right}
+.tl-date{font-size:12px;font-weight:500;color:var(--ink);line-height:1.2}
+.tl-weekday{font-size:10px;color:var(--ink3);margin-top:2px}
+.tl-spine{display:flex;flex-direction:column;align-items:center;position:relative}
+.tl-node{width:14px;height:14px;border-radius:50%;border:2px solid var(--border);background:var(--bg);flex-shrink:0;margin-top:16px;cursor:pointer;transition:all .2s;z-index:2;position:relative}
+.tl-node:hover{transform:scale(1.2)}
+.tl-node.done{background:var(--green);border-color:var(--green)}
+.tl-node.late{background:var(--red);border-color:var(--red)}
+.tl-node.today{background:var(--blue);border-color:var(--blue);box-shadow:0 0 0 4px rgba(29,78,216,.15)}
+.tl-connector{flex:1;width:1.5px;background:var(--border);margin-top:0}
+.tl-connector.done{background:var(--green);opacity:.5}
+.tl-connector.late{background:var(--red);opacity:.4}
+.tl-body{padding:10px 0 0 20px;padding-bottom:24px}
+.tl-card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px 16px;transition:border-color .2s}
+.tl-card:hover{border-color:rgba(26,24,20,.22)}
+.tl-card.done{border-color:rgba(45,106,79,.3);background:#fcfffe}
+.tl-card.late{border-color:rgba(200,67,42,.35);background:var(--red-bg)}
+.tl-card.today{border-color:rgba(29,78,216,.3);background:var(--blue-bg)}
+.card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px}
+.card-title{font-family:var(--serif);font-size:15px;font-weight:300;color:var(--ink);line-height:1.3}
+.card-title.pub{font-weight:600;font-size:17px}
+.badges{display:flex;gap:5px;flex-wrap:wrap;flex-shrink:0}
+.badge{font-size:10px;padding:2px 8px;border-radius:99px;font-family:var(--mono);white-space:nowrap}
+.badge-done{background:var(--green-bg);color:var(--green)}
+.badge-late{background:var(--red-bg);color:var(--red)}
+.badge-today{background:var(--blue-bg);color:var(--blue)}
+.badge-pending{background:var(--bg2);color:var(--ink2)}
+.badge-delay{background:var(--red);color:#fff}
+.card-desc{font-size:11px;color:var(--ink2);line-height:1.6;margin-bottom:10px}
+.card-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{font-size:11px;padding:5px 12px;border-radius:6px;cursor:pointer;border:0.5px solid var(--border);background:var(--bg);color:var(--ink);font-family:var(--mono);transition:all .15s}
+.btn:hover{background:var(--bg2)}
+.btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.btn.primary:hover{background:#333}
+.btn.success{background:var(--green);color:#fff;border-color:var(--green)}
+.events-list{margin:8px 0 0;border-top:0.5px solid var(--border2);padding-top:8px}
+.event-row{display:flex;align-items:flex-start;gap:8px;padding:3px 0;font-size:11px;color:var(--ink2)}
+.event-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.event-body{flex:1;line-height:1.4}
+.event-date{color:var(--ink3);flex-shrink:0}
+.event-del{color:var(--red);cursor:pointer;padding:0 3px;opacity:.5;transition:opacity .15s;flex-shrink:0}
+.event-del:hover{opacity:1}
+.note-text{font-size:11px;color:var(--ink2);font-style:italic;margin-top:4px;padding:6px 10px;background:var(--amber-bg);border-radius:6px;border-left:2px solid var(--amber)}
+.note-form{margin-top:8px;display:none}
+.note-form.open{display:block}
+.note-form textarea{width:100%;font-size:11px;font-family:var(--mono);border:0.5px solid var(--border);border-radius:6px;padding:7px 10px;background:var(--bg);color:var(--ink);resize:vertical;min-height:54px;margin-bottom:6px}
+.note-form textarea:focus{outline:none;border-color:rgba(26,24,20,.3)}
+
+/* working days strip */
+.wd-strip{display:grid;grid-template-columns:100px 1px 1fr;margin:0}
+.wd-left{padding-right:20px}
+.wd-spine{display:flex;justify-content:center}
+.wd-spine-line{width:1.5px;background:var(--border);height:100%}
+.wd-right{padding:2px 0 2px 20px;display:flex;align-items:center}
+.wd-label{font-size:10px;color:var(--ink3);padding:0 10px;white-space:nowrap;display:flex;align-items:center;gap:5px}
+.wd-hr{flex:1;height:0.5px;background:var(--border2)}
+
+/* modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(26,24,20,.5);display:none;align-items:center;justify-content:center;z-index:100;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg);border-radius:var(--radius);padding:24px;width:100%;max-width:460px;border:0.5px solid var(--border)}
+.modal h3{font-family:var(--serif);font-size:18px;font-weight:300;margin-bottom:16px}
+.form-row{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+.form-label{font-size:10px;color:var(--ink2);text-transform:uppercase;letter-spacing:.06em}
+.form-input{font-size:12px;font-family:var(--mono);border:0.5px solid var(--border);border-radius:6px;padding:8px 10px;background:var(--bg);color:var(--ink);width:100%}
+.form-input:focus{outline:none;border-color:rgba(26,24,20,.3)}
+.form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+
+/* add event btn */
+.add-event-btn{font-size:10px;color:var(--blue);cursor:pointer;background:none;border:none;font-family:var(--mono);padding:0;transition:opacity .15s}
+.add-event-btn:hover{opacity:.7}
+
+/* toast */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--ink);color:var(--bg);font-size:12px;font-family:var(--mono);padding:10px 16px;border-radius:var(--radius);opacity:0;transform:translateY(8px);transition:all .2s;pointer-events:none;z-index:200}
+.toast.show{opacity:1;transform:translateY(0)}
+
+/* firebase status */
+.fb-status{font-size:10px;color:var(--ink3);display:flex;align-items:center;gap:5px;margin-top:8px}
+
+/* responsive */
+@media(max-width:540px){
+  .tl-item{grid-template-columns:72px 1px 1fr}
+  .tl-date{font-size:11px}
+  .stats{grid-template-columns:1fr 1fr}
+  .page{padding:20px 14px 60px}
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <header class="site-header">
+    <div class="site-title">Patent Application<br/><em>Timeline</em></div>
+    <div class="site-meta">
+      <span class="meta-chip pub">Publication: 18 June 2026</span>
+      <span class="meta-chip">Your deadline: 22 May 2026</span>
+      <span class="meta-chip" id="today-chip">Today: —</span>
+      <span class="meta-chip"><span class="live-dot"></span>Live — shared with team</span>
+    </div>
+    <div class="fb-status" id="fb-status">Connecting to database...</div>
+  </header>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-label">Days to publication</div>
+      <div class="stat-value" id="s-pub">—</div>
+      <div class="stat-sub">18 June 2026</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Milestones done</div>
+      <div class="stat-value success" id="s-done">0 / 6</div>
+      <div class="stat-sub" id="s-pct">0% complete</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Next deadline</div>
+      <div class="stat-value" id="s-next">—</div>
+      <div class="stat-sub" id="s-next-label">—</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Status</div>
+      <div class="stat-value" id="s-status">—</div>
+      <div class="stat-sub" id="s-status-sub">—</div>
+    </div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-label">
+      <span>Overall progress</span>
+      <span id="prog-pct">0%</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+  </div>
+
+  <div class="alert" id="delay-alert"></div>
+
+  <div class="timeline" id="timeline-root"></div>
+
+</div>
+
+<!-- Add event modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h3>Log an event</h3>
+    <div class="form-row-2">
+      <div class="form-row">
+        <label class="form-label">Date</label>
+        <input class="form-input" type="date" id="ev-date"/>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Type</label>
+        <select class="form-input" id="ev-type">
+          <option value="#2d6a4f">Received / done</option>
+          <option value="#1d4ed8">Info / update</option>
+          <option value="#c8432a">Issue / delay</option>
+          <option value="#b45309">Pending / waiting</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Description</label>
+      <input class="form-input" type="text" id="ev-text" placeholder="e.g. List of compounds received from lab A"/>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Author (optional)</label>
+      <input class="form-input" type="text" id="ev-author" placeholder="Your name or initials"/>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn primary" onclick="submitEvent()">Add event</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getDatabase, ref, onValue, set, remove, push } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBbtbNdjdnQhhm-FEyQDLmlazQsgp96niI",
+  authDomain: "head-tail-project-timeline.firebaseapp.com",
+  databaseURL: "https://head-tail-project-timeline-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "head-tail-project-timeline",
+  storageBucket: "head-tail-project-timeline.firebasestorage.app",
+  messagingSenderId: "510841422580",
+  appId: "1:510841422580:web:a96fccefcac4fb7f5554a1"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+const MILESTONES = [
+  {id:'m1', date:'2026-05-22', label:'Your deadline — all data ready', desc:'All chemical and biological data must be fully submitted. Hard deadline for all contributors. More details in email from 23/4.', wdBefore:null},
+  {id:'m2', date:'2026-05-26', label:'All data together in patent application', desc:'After 2–3 working days of compilation, all collected data is assembled into a coherent patent application draft.', wdBefore:'2–3 working days — data compilation'},
+  {id:'m3', date:'2026-06-01', label:'Deadline for PA revision', desc:'Patent attorney receives and reviews the full draft. Revision must be submitted by this date. 4 working days from previous milestone.', wdBefore:'4 working days — patent attorney review'},
+  {id:'m4', date:'2026-06-08', label:'Deadline for all revisions', desc:'All remaining revisions and corrections must be finalised and returned. 5 working days from PA revision deadline.', wdBefore:'5 working days — final revisions'},
+  {id:'m5', date:'2026-06-12', label:'Final version ready', desc:'The complete, reviewed patent application is locked. 3 working days from the revision deadline.', wdBefore:'3 working days — final checks'},
+  {id:'m6', date:'2026-06-18', label:'Publication', desc:'Official filing and publication. 5 working days after final version is locked.', wdBefore:'5 working days — submission & publication prep', isPub:true},
+];
+
+const TODAY = new Date(); TODAY.setHours(0,0,0,0);
+let sharedState = { milestones:{}, events:{} };
+
+function parseDate(s){ const [y,m,d]=s.split('-'); return new Date(+y,+m-1,+d); }
+function fmt(d){ return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'}); }
+function fmtFull(d){ return d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}); }
+function diffDays(a,b){ return Math.round((b-a)/86400000); }
+function mStatus(m){
+  const done = sharedState.milestones?.[m.id]?.done;
+  if(done) return 'done';
+  const md = parseDate(m.date);
+  if(TODAY > md) return 'late';
+  if(diffDays(TODAY,md)===0) return 'today';
+  return 'pending';
+}
+
+window._modalMid = null;
+window.openModal = (mid) => {
+  window._modalMid = mid;
+  const d = new Date(); 
+  document.getElementById('ev-date').value = d.toISOString().slice(0,10);
+  document.getElementById('ev-text').value = '';
+  document.getElementById('modal').classList.add('open');
+  setTimeout(()=>document.getElementById('ev-text').focus(),50);
+};
+window.closeModal = () => document.getElementById('modal').classList.remove('open');
+document.getElementById('modal').addEventListener('click', e => { if(e.target===e.currentTarget) closeModal(); });
+
+window.submitEvent = () => {
+  const text = document.getElementById('ev-text').value.trim();
+  const date = document.getElementById('ev-date').value;
+  const color = document.getElementById('ev-type').value;
+  const author = document.getElementById('ev-author').value.trim();
+  if(!text || !date) return;
+  const ev = { text, date, color, mid: window._modalMid||null, author, ts: Date.now() };
+  push(ref(db,'patent/events'), ev);
+  closeModal();
+  showToast('Event logged');
+};
+
+window.toggleDone = (mid) => {
+  const cur = sharedState.milestones?.[mid]?.done;
+  set(ref(db,`patent/milestones/${mid}/done`), !cur);
+  showToast(!cur ? '✓ Marked as done' : 'Unmarked');
+};
+
+window.openNote = (mid) => {
+  const form = document.getElementById('note-form-'+mid);
+  if(form) form.classList.toggle('open');
+};
+window.saveNote = (mid) => {
+  const val = document.getElementById('note-input-'+mid)?.value||'';
+  set(ref(db,`patent/milestones/${mid}/note`), val);
+  document.getElementById('note-form-'+mid)?.classList.remove('open');
+  showToast('Note saved');
+};
+window.removeEvent = (key) => {
+  remove(ref(db,`patent/events/${key}`));
+  showToast('Event removed');
+};
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+function render(){
+  const root = document.getElementById('timeline-root');
+  root.innerHTML='';
+  let doneCnt=0, hasLate=false, nextMilestone=null;
+  MILESTONES.forEach((m,i)=>{
+    const st = mStatus(m);
+    if(st==='done') doneCnt++;
+    if(st==='late') hasLate=true;
+    if(!nextMilestone && st!=='done') nextMilestone=m;
+
+    // working days strip
+    if(m.wdBefore && i>0){
+      const strip=document.createElement('div');
+      strip.className='wd-strip';
+      strip.innerHTML=`<div class="wd-left"></div>
+        <div class="wd-spine"><div class="wd-spine-line"></div></div>
+        <div class="wd-right"><div class="wd-hr"></div><div class="wd-label">⏱ ${m.wdBefore}</div><div class="wd-hr"></div></div>`;
+      root.appendChild(strip);
+    }
+
+    const md = parseDate(m.date);
+    const delayDays = (st==='late') ? diffDays(md,TODAY) : 0;
+    const note = sharedState.milestones?.[m.id]?.note||'';
+    const evs = Object.entries(sharedState.events||{}).filter(([k,e])=>e.mid===m.id).sort((a,b)=>a[1].ts-b[1].ts);
+
+    const item=document.createElement('div');
+    item.className='tl-item';
+    item.innerHTML=`
+      <div class="tl-date-col">
+        <div class="tl-date">${fmt(md)}</div>
+        <div class="tl-weekday">${md.toLocaleDateString('en-GB',{weekday:'short'})}</div>
+      </div>
+      <div class="tl-spine">
+        <div class="tl-node ${st}" onclick="toggleDone('${m.id}')" title="Click to toggle done"></div>
+        ${i<MILESTONES.length-1?`<div class="tl-connector ${st}"></div>`:''}
+      </div>
+      <div class="tl-body">
+        <div class="tl-card ${st}">
+          <div class="card-header">
+            <div class="card-title ${m.isPub?'pub':''}">${m.label}</div>
+            <div class="badges">
+              ${delayDays>0?`<span class="badge badge-delay">+${delayDays}d</span>`:''}
+              <span class="badge badge-${st}">${st==='done'?'✓ done':st==='late'?'overdue':st==='today'?'today':'upcoming'}</span>
+            </div>
+          </div>
+          <div class="card-desc">${m.desc}</div>
+          ${note?`<div class="note-text">📝 ${note}</div>`:''}
+          ${evs.length>0?`<div class="events-list">${evs.map(([k,e])=>`
+            <div class="event-row">
+              <div class="event-dot" style="background:${e.color}"></div>
+              <div class="event-body"><strong>${e.date}</strong>${e.author?' · '+e.author:''} — ${e.text}</div>
+              <span class="event-del" onclick="removeEvent('${k}')">✕</span>
+            </div>`).join('')}</div>`:''}
+          <div class="card-actions">
+            <button class="btn ${st==='done'?'success':''}" onclick="toggleDone('${m.id}')">${st==='done'?'✓ Done — click to undo':'Mark as done'}</button>
+            <button class="add-event-btn" onclick="openModal('${m.id}')">+ log event</button>
+            <button class="add-event-btn" onclick="openNote('${m.id}')">${note?'edit note':'+ note'}</button>
+          </div>
+          <div class="note-form" id="note-form-${m.id}">
+            <textarea id="note-input-${m.id}" placeholder="Internal note, remark, or status...">${note}</textarea>
+            <div style="display:flex;gap:6px">
+              <button class="btn primary" onclick="saveNote('${m.id}')">Save</button>
+              <button class="btn" onclick="document.getElementById('note-form-${m.id}').classList.remove('open')">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    root.appendChild(item);
+  });
+
+  // stats
+  const pubDays = diffDays(TODAY, parseDate('2026-06-18'));
+  const pdEl = document.getElementById('s-pub');
+  pdEl.textContent = pubDays>0?pubDays+'d':pubDays===0?'Today!':'Past';
+  pdEl.className='stat-value'+(pubDays<7?' danger':pubDays<14?' warn':' success');
+  const pct=Math.round(doneCnt/MILESTONES.length*100);
+  document.getElementById('s-done').textContent=`${doneCnt} / ${MILESTONES.length}`;
+  document.getElementById('s-pct').textContent=`${pct}% complete`;
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('prog-pct').textContent=pct+'%';
+  if(nextMilestone){
+    const nd=parseDate(nextMilestone.date);
+    const dd=diffDays(TODAY,nd);
+    document.getElementById('s-next').textContent=fmt(nd);
+    document.getElementById('s-next').className='stat-value'+(dd<3?' danger':dd<7?' warn':' success');
+    document.getElementById('s-next-label').textContent=nextMilestone.label.slice(0,28)+'…';
+  }
+  const statusEl=document.getElementById('s-status');
+  const statusSub=document.getElementById('s-status-sub');
+  if(hasLate){statusEl.textContent='Delayed';statusEl.className='stat-value danger';statusSub.textContent='Action required';}
+  else if(doneCnt===MILESTONES.length){statusEl.textContent='Complete';statusEl.className='stat-value success';statusSub.textContent='All done!';}
+  else{statusEl.textContent='On track';statusEl.className='stat-value success';statusSub.textContent='Keep going';}
+
+  // delay alert
+  const lates=MILESTONES.filter(m=>mStatus(m)==='late');
+  const alertEl=document.getElementById('delay-alert');
+  if(lates.length){
+    alertEl.className='alert show';
+    alertEl.innerHTML='⚠ '+lates.map(m=>`<strong>${m.label}</strong> is overdue by ${diffDays(parseDate(m.date),TODAY)} day(s)`).join(' · ')+'. Downstream deadlines may shift — please coordinate with the team.';
+  } else alertEl.className='alert';
+
+  document.getElementById('today-chip').textContent='Today: '+fmtFull(TODAY);
+}
+
+// Firebase listeners
+onValue(ref(db,'patent'), snap => {
+  sharedState = snap.val() || { milestones:{}, events:{} };
+  if(!sharedState.milestones) sharedState.milestones={};
+  if(!sharedState.events) sharedState.events={};
+  document.getElementById('fb-status').innerHTML='<span style="color:var(--green)">● Connected — changes sync live</span>';
+  render();
+}, err => {
+  document.getElementById('fb-status').innerHTML='<span style="color:var(--red)">● Offline — changes will not sync</span>';
+  render();
+});
+
+// keyboard shortcut for modal
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
+</script>
+</body>
+</html>
