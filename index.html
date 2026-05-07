@@ -165,7 +165,7 @@ a{color:inherit;text-decoration:none}
   <header class="site-header">
     <div class="site-title">Patent Application<br/><em>Timeline</em></div>
     <div class="site-meta">
-      <span class="meta-chip pub">Publication: 18 June 2026</span>
+      <span class="meta-chip pub">Filing: 18 June 2026</span>
       <span class="meta-chip">Your deadline: 22 May 2026</span>
       <span class="meta-chip" id="today-chip">Today: —</span>
       <span class="meta-chip"><span class="live-dot"></span>Live — shared with team</span>
@@ -175,7 +175,7 @@ a{color:inherit;text-decoration:none}
 
   <div class="stats">
     <div class="stat">
-      <div class="stat-label">Days to publication</div>
+      <div class="stat-label">Days to filing</div>
       <div class="stat-value" id="s-pub">—</div>
       <div class="stat-sub">18 June 2026</div>
     </div>
@@ -265,10 +265,10 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 const MILESTONES = [
-  {id:'m1', date:'2026-05-22', label:'Your deadline — all data ready', desc:'All chemical and biological data must be fully submitted. Hard deadline for all contributors. More details in email from 23/4.', wdBefore:null},
+  {id:'m1', date:'2026-05-22', label:'All experimental data deadline — all data ready', desc:'All chemical and biological data must be fully submitted. Hard deadline for all contributors. More details in email from 23/4.', wdBefore:null},
   {id:'m2', date:'2026-05-26', label:'All data together in patent application', desc:'After 2–3 working days of compilation, all collected data is assembled into a coherent patent application draft.', wdBefore:'2–3 working days — data compilation'},
   {id:'m3', date:'2026-06-01', label:'Deadline for PA revision', desc:'Patent attorney receives and reviews the full draft. Revision must be submitted by this date. 4 working days from previous milestone.', wdBefore:'4 working days — patent attorney review'},
-  {id:'m4', date:'2026-06-08', label:'Deadline for all revisions', desc:'All remaining revisions and corrections must be finalised and returned. 5 working days from PA revision deadline.', wdBefore:'5 working days — final revisions'},
+  {id:'m4', date:'2026-06-08', label:'Deadline for Adalid revision', desc:'All remaining revisions and corrections must be finalised and returned. 5 working days from PA revision deadline.', wdBefore:'5 working days — final revisions'},
   {id:'m5', date:'2026-06-12', label:'Final version ready', desc:'The complete, reviewed patent application is locked. 3 working days from the revision deadline.', wdBefore:'3 working days — final checks'},
   {id:'m6', date:'2026-06-18', label:'Publication', desc:'Official filing and publication. 5 working days after final version is locked.', wdBefore:'5 working days — submission & publication prep', isPub:true},
 ];
